@@ -3,3 +3,10 @@ openpyxl
 psycopg2-binary
 sqlalchemy
 python-dotenv
+streamlit
+sqlalchemy
+plotly
+requests
+fpdf
+kaleido
+
