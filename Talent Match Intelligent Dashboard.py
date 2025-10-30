@@ -432,8 +432,8 @@ with tab_overview:
     st.subheader("💡 AI-Generated Job Profile")
     prompt = f"""
 Buat job profile untuk:
-Role: selected_role
-Level: selected_grade
+Role: {selected_role}
+Level: {selected_grade}
 Purpose: {st.session_state.role_purpose}
 
 Format:
