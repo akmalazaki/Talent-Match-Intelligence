@@ -20,15 +20,22 @@ import tempfile
 if os.path.exists(".env"):
     load_dotenv(find_dotenv())
 
+# Helper untuk ambil secret dengan aman
+def safe_get_secret(key, default=None):
+    try:
+        return st.secrets.get(key, default)
+    except Exception:
+        return default
+
 DB_CONFIG = {
-    "USER": os.getenv("user", st.secrets.get("user")),
-    "PASSWORD": os.getenv("password", st.secrets.get("password")),
-    "HOST": os.getenv("host", st.secrets.get("host")),
-    "PORT": os.getenv("port", st.secrets.get("port", "5432")),
-    "DBNAME": os.getenv("dbname", st.secrets.get("dbname"))
+    "USER": os.getenv("user") or safe_get_secret("user"),
+    "PASSWORD": os.getenv("password") or safe_get_secret("password"),
+    "HOST": os.getenv("host") or safe_get_secret("host"),
+    "PORT": os.getenv("port") or safe_get_secret("port", "5432"),
+    "DBNAME": os.getenv("dbname") or safe_get_secret("dbname"),
 }
 
-OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY", st.secrets.get("OPENROUTER_API_KEY"))
+OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY") or safe_get_secret("OPENROUTER_API_KEY")
 HEADERS = {
     "Authorization": f"Bearer {OPENROUTER_KEY}",
     "HTTP-Referer": "http://localhost",
