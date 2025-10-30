@@ -8,6 +8,7 @@ from sqlalchemy import create_engine, text
 from dotenv import load_dotenv, find_dotenv
 import plotly.express as px
 import plotly.graph_objects as go
+import plotly.io as pio
 import requests
 import streamlit.components.v1 as components
 from datetime import datetime
@@ -90,13 +91,21 @@ def generate_pdf_report(candidate_name, emp_id, summary, radar_fig, gap_fig, nar
         pdf.cell(0, 8, f"{k}: {v}", ln=True)
     pdf.ln(4)
 
-    # Charts — save to temporary images
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_radar:
-        radar_fig.write_image(tmp_radar.name, engine="kaleido", scale=1.5)
-        radar_img_path = tmp_radar.name
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_gap:
-        gap_fig.write_image(tmp_gap.name, engine="kaleido", scale=1.5)
-        gap_img_path = tmp_gap.name
+# --- Tambahkan konfigurasi Kaleido (tanpa Chrome dependency) ---
+pio.kaleido.scope.default_format = "png"
+pio.kaleido.scope.default_width = 800
+pio.kaleido.scope.default_height = 600
+pio.kaleido.scope.default_scale = 1.5
+
+# --- Radar chart image ---
+with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_radar:
+    radar_fig.write_image(tmp_radar.name)
+    radar_img_path = tmp_radar.name
+
+# --- Gap chart image ---
+with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_gap:
+    gap_fig.write_image(tmp_gap.name)
+    gap_img_path = tmp_gap.name
 
     # Insert charts
     pdf.set_font("Helvetica", "B", 12)
