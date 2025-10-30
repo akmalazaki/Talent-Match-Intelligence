@@ -5,8 +5,8 @@ sqlalchemy
 python-dotenv
 streamlit
 sqlalchemy
-plotly
 requests
 fpdf
-kaleido
+plotly==5.24.1
+kaleido==0.2.1
 
