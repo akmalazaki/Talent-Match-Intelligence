@@ -308,29 +308,38 @@ for k, v in defaults.items():
 # =========================
 # Sidebar Inputs
 # =========================
-st.markdown("""
+st.markdown(
+    """
     <style>
-    /* Gunakan warna teks dinamis berdasarkan tema Streamlit */
-    [data-testid="stMarkdownContainer"] h1, 
-    [data-testid="stMarkdownContainer"] h2, 
-    [data-testid="stMarkdownContainer"] h3 {
-        color: var(--text-color);
+    /* Atur warna teks sesuai tema Streamlit */
+    [data-theme="light"] h3.app-title { color: #111111; }  /* hitam untuk background putih */
+    [data-theme="dark"] h3.app-title { color: #FFFFFF; }   /* putih untuk background gelap */
+
+    h3.app-title {
+        text-align: left;
+        font-size: 1.6rem;
+        margin-top: -1rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
     }
 
-    /* Pastikan title di tengah */
-    h1, h2 {
-        text-align: center;
+    hr.app-line {
+        border: 0.5px solid rgba(255,255,255,0.1);
+        margin-top: -0.2rem;
     }
 
-    /* Warna teks otomatis berubah sesuai mode */
-    [data-theme="light"] {
-        --text-color: #111111; /* hitam untuk background putih */
-    }
-    [data-theme="dark"] {
-        --text-color: #FFFFFF; /* putih untuk background gelap */
+    [data-theme="light"] hr.app-line {
+        border-color: rgba(0,0,0,0.1);
     }
     </style>
-""", unsafe_allow_html=True)
+
+    <h3 class='app-title'>
+        Talent Match Intelligence — Succession Dashboard
+    </h3>
+    <hr class='app-line'>
+    """,
+    unsafe_allow_html=True
+)
 
 def set_state(k):
     st.session_state[k] = st.session_state[f"_{k}"]
