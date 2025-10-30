@@ -308,20 +308,29 @@ for k, v in defaults.items():
 # =========================
 # Sidebar Inputs
 # =========================
-st.markdown(
-    """
-    <h3 style='text-align: left; 
-               font-size: 1.6rem; 
-               margin-top: -1rem; 
-               margin-bottom: 0.5rem;
-               font-weight: 600; 
-               color: white;'>
-        Talent Match Intelligence — Succession Dashboard
-    </h3>
-    <hr style='border:0.5px solid rgba(255,255,255,0.1); margin-top:-0.2rem;'>
-    """, 
-    unsafe_allow_html=True
-)
+st.markdown("""
+    <style>
+    /* Gunakan warna teks dinamis berdasarkan tema Streamlit */
+    [data-testid="stMarkdownContainer"] h1, 
+    [data-testid="stMarkdownContainer"] h2, 
+    [data-testid="stMarkdownContainer"] h3 {
+        color: var(--text-color);
+    }
+
+    /* Pastikan title di tengah */
+    h1, h2 {
+        text-align: center;
+    }
+
+    /* Warna teks otomatis berubah sesuai mode */
+    [data-theme="light"] {
+        --text-color: #111111; /* hitam untuk background putih */
+    }
+    [data-theme="dark"] {
+        --text-color: #FFFFFF; /* putih untuk background gelap */
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 def set_state(k):
     st.session_state[k] = st.session_state[f"_{k}"]
