@@ -17,17 +17,18 @@ import tempfile
 # =========================
 # Setup & Connection
 # =========================
-load_dotenv(find_dotenv())
+if os.path.exists(".env"):
+    load_dotenv(find_dotenv())
 
 DB_CONFIG = {
-    "USER": os.getenv("user"),
-    "PASSWORD": os.getenv("password"),
-    "HOST": os.getenv("host"),
-    "PORT": os.getenv("port", "5432"),
-    "DBNAME": os.getenv("dbname")
+    "USER": os.getenv("user", st.secrets.get("user")),
+    "PASSWORD": os.getenv("password", st.secrets.get("password")),
+    "HOST": os.getenv("host", st.secrets.get("host")),
+    "PORT": os.getenv("port", st.secrets.get("port", "5432")),
+    "DBNAME": os.getenv("dbname", st.secrets.get("dbname"))
 }
 
-OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY", st.secrets.get("OPENROUTER_API_KEY"))
 HEADERS = {
     "Authorization": f"Bearer {OPENROUTER_KEY}",
     "HTTP-Referer": "http://localhost",
