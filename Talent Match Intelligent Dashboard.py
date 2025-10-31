@@ -73,23 +73,40 @@ def to_pg_array(v: list[str]) -> str:
         return "{}"
     return "{" + ",".join(f'"{x}"' for x in v) + "}"
 
-# Pastikan font tersedia
-os.makedirs("fonts", exist_ok=True)
-if not os.path.exists("fonts/DejaVuSans.ttf"):
-    url = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf"
-    urllib.request.urlretrieve(url, "fonts/DejaVuSans.ttf")
+# Cek apakah font tersedia secara lokal
+DEFAULT_FONT_PATHS = [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "fonts/DejaVuSans.ttf"
+]
+
+FONT_PATH = None
+for path in DEFAULT_FONT_PATHS:
+    if os.path.exists(path):
+        FONT_PATH = path
+        break
+
+# Jika tidak ada, download manual (last resort)
+if FONT_PATH is None:
+    import urllib.request
+    os.makedirs("fonts", exist_ok=True)
+    FONT_PATH = "fonts/DejaVuSans.ttf"
+    try:
+        urllib.request.urlretrieve(
+            "https://raw.githubusercontent.com/dejavu-fonts/dejavu-fonts/master/ttf/DejaVuSans.ttf",
+            FONT_PATH
+        )
+    except Exception as e:
+        raise RuntimeError(f"Gagal mengunduh font DejaVuSans.ttf: {e}")
 
 def generate_pdf_report(candidate_name, emp_id, summary, radar_fig, gap_fig, narrative_text):
-    """Generate temporary PDF report file and return its path."""
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
 
-    # Tambahkan font Unicode
-    pdf.add_font("DejaVu", "", "fonts/DejaVuSans.ttf", uni=True)
-    pdf.add_font("DejaVu", "B", "fonts/DejaVuSans.ttf", uni=True)
+    # Gunakan font Unicode (dari FONT_PATH)
+    pdf.add_font("DejaVu", "", FONT_PATH, uni=True)
+    pdf.add_font("DejaVu", "B", FONT_PATH, uni=True)
 
-    # Header
     pdf.set_font("DejaVu", "B", 14)
     pdf.cell(0, 10, "Talent Match Intelligence — Succession Report", ln=True, align="C")
     pdf.ln(8)
@@ -101,7 +118,7 @@ def generate_pdf_report(candidate_name, emp_id, summary, radar_fig, gap_fig, nar
         pdf.cell(0, 8, f"{k}: {v}", ln=True)
     pdf.ln(4)
 
-    # Convert Plotly figures to PNG (no Chrome or Kaleido needed)
+    # Convert Plotly charts to PNG (tanpa Chrome)
     radar_bytes = radar_fig.to_image(format="png", scale=1.5)
     gap_bytes = gap_fig.to_image(format="png", scale=1.5)
 
@@ -112,7 +129,7 @@ def generate_pdf_report(candidate_name, emp_id, summary, radar_fig, gap_fig, nar
         tmp_gap.write(gap_bytes)
         gap_img_path = tmp_gap.name
 
-    # Insert charts
+    # Charts
     pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 8, "Competency Match Overview", ln=True)
     pdf.image(radar_img_path, w=150)
@@ -127,7 +144,6 @@ def generate_pdf_report(candidate_name, emp_id, summary, radar_fig, gap_fig, nar
     narrative_text = narrative_text.encode("utf-8", "replace").decode("utf-8")
     pdf.multi_cell(0, 7, narrative_text)
 
-    # Save to temporary PDF file
     tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
     pdf.output(tmp_pdf.name)
     return tmp_pdf.name
