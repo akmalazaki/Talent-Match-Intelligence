@@ -423,7 +423,7 @@ if st.sidebar.button("🔄 Reset State"):
     st.rerun()
 
 if not st.session_state.submitted:
-    st.info("Isi dan klik Generate Matching Results.")
+    st.info("Welcome to the Talent Match Intelligence Dashboard. Please fill in and click **Generate Matching Results**.")
     st.stop()
 
 # =========================
