@@ -1,7 +1,6 @@
 # Talent Match Intelligence — Succession Dashboard (Step 3)
 # python -m streamlit run "Talent Match Intelligent Dashboard.py"
 
-import os
 import pandas as pd
 import streamlit as st
 from sqlalchemy import create_engine, text
@@ -14,6 +13,7 @@ import streamlit.components.v1 as components
 from datetime import datetime
 from fpdf import FPDF
 import tempfile
+import os, tempfile, urllib.request
 
 # =========================
 # Setup & Connection
@@ -73,42 +73,47 @@ def to_pg_array(v: list[str]) -> str:
         return "{}"
     return "{" + ",".join(f'"{x}"' for x in v) + "}"
 
+# Pastikan font tersedia
+os.makedirs("fonts", exist_ok=True)
+if not os.path.exists("fonts/DejaVuSans.ttf"):
+    url = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf"
+    urllib.request.urlretrieve(url, "fonts/DejaVuSans.ttf")
+
 def generate_pdf_report(candidate_name, emp_id, summary, radar_fig, gap_fig, narrative_text):
     """Generate temporary PDF report file and return its path."""
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
-    
+
+    # Tambahkan font Unicode
+    pdf.add_font("DejaVu", "", "fonts/DejaVuSans.ttf", uni=True)
+    pdf.add_font("DejaVu", "B", "fonts/DejaVuSans.ttf", uni=True)
+
     # Header
-    pdf.set_font("Helvetica", "B", 14)
-    pdf.cell(0, 10, "Talent Match Intelligence - Succession Report", ln=True, align="C")
+    pdf.set_font("DejaVu", "B", 14)
+    pdf.cell(0, 10, "Talent Match Intelligence — Succession Report", ln=True, align="C")
     pdf.ln(8)
-    
+
     # Candidate info
-    pdf.set_font("Helvetica", "", 12)
+    pdf.set_font("DejaVu", "", 12)
     pdf.cell(0, 8, f"Candidate: {candidate_name} ({emp_id})", ln=True)
     for k, v in summary.items():
         pdf.cell(0, 8, f"{k}: {v}", ln=True)
     pdf.ln(4)
 
-    # --- Tambahkan konfigurasi Kaleido (tanpa Chrome dependency) ---
-    pio.kaleido.scope.default_format = "png"
-    pio.kaleido.scope.default_width = 800
-    pio.kaleido.scope.default_height = 600
-    pio.kaleido.scope.default_scale = 1.5
-    
-    # --- Radar chart image ---
+    # Convert Plotly figures to PNG (no Chrome or Kaleido needed)
+    radar_bytes = radar_fig.to_image(format="png", scale=1.5)
+    gap_bytes = gap_fig.to_image(format="png", scale=1.5)
+
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_radar:
-        radar_fig.write_image(tmp_radar.name)
+        tmp_radar.write(radar_bytes)
         radar_img_path = tmp_radar.name
-    
-    # --- Gap chart image ---
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_gap:
-        gap_fig.write_image(tmp_gap.name)
+        tmp_gap.write(gap_bytes)
         gap_img_path = tmp_gap.name
 
     # Insert charts
-    pdf.set_font("Helvetica", "B", 12)
+    pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 8, "Competency Match Overview", ln=True)
     pdf.image(radar_img_path, w=150)
     pdf.ln(5)
@@ -116,16 +121,16 @@ def generate_pdf_report(candidate_name, emp_id, summary, radar_fig, gap_fig, nar
     pdf.ln(8)
 
     # Narrative
-    pdf.set_font("Helvetica", "B", 12)
+    pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 8, "AI Advisory Summary", ln=True)
-    pdf.set_font("Helvetica", "", 11)
+    pdf.set_font("DejaVu", "", 11)
+    narrative_text = narrative_text.encode("utf-8", "replace").decode("utf-8")
     pdf.multi_cell(0, 7, narrative_text)
 
     # Save to temporary PDF file
     tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
     pdf.output(tmp_pdf.name)
     return tmp_pdf.name
-
 
 BLUE_1 = "#0ea5e9"
 BLUE_2 = "#2563eb"
